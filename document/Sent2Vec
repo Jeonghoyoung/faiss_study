@@ -1,0 +1,75 @@
+Sent2Vec
+
+- 사전 지식
+	* Subsampling 
+		- 빈도 수가 높은 단어를 학습에서 제외해 학습 속도를 높여 불용어 제거와 유사한 효과를 갖게 한다.
+		- 학습 배제는 랜덤 확률로 한다.
+	* NegativeSampling
+		- 학습 과정에서 전체 단어 집합이 아닌 일부 단어 집합에만 집중할 수 있도록 하는 방법.
+		- 하나의 중심 단어에 대해서 전체 단어 집합보다 훨씬 작은 단어 집합을 만들어 놓고 마지막 단계를 이진 분류 문제로 변환, 주변 단어들을 긍정, 랜덤으로 샘플링된 단어들을 부정으로 레이블링한다면 이진 분류를 위한 데이터셋으로 하여 단어 집합의 크기만큼의 선택지를 두고 다중 클래스 분류로 풀던 방식보다 연산량에서 효률적인 방법.
+
+		- 기존의 중심 단어로부터 주변 단어를 예측하는 모델인 Skip-gram과 달리, 중심 단어와 주변 단어가 모두 입력되고, 두 단어가 실제로 윈도우 크기내에 존재하는 이웃 관계인지 그 확률을 예측한다.
+		- 긍정적 예를 타깃으로 한 경우의 손실을 구하면서, 동시에 부정적 예를 샘플링하여 손실을 구한다. 부정적 예를 샘플링하는 좋은 방법으로 코퍼스에서 자주 등장하는 단어를 많이 추출하고 드물게 등장하는 단어를 적게 추출하는 방법이다.
+
+- Sent2Vec
+	- 범용적인 문장 임베딩을 목표로 하는 비지도 학습 모델로, Word2Vec의 CBOW 모델을 문장 단위로 확장한 모델이다.
+	- 문장에 존재하는 모든 요소의 벡터 합에 평균을 취한 값을 문장 임베딩 값을 갖는다.
+	- 기본적인 학습방식은 문장의 네거티브 샘플링을 통해 컨텍스트(주변) 전체의 loss를 최소화 하는 형태로 학습한다.
+
+	- CBOW와의 차이점:
+		1. 서브샘플링 비활성화 : 서브샘플링은 모든 n-gram 생성을 가로막고 문장에서 중요한 부분을 앗아갈수 있고, 서브샘플링된 단어만 남게되면 단어간 거리를 단축시켜 컨텍스트 윈도우의 크기를 암묵적으로 증가시키는 부작용을 낳는다.
+		2. 다이나믹 컨텍스트 윈도우 비활성화 : 문장 전체의 의미를 살리기 위해 문장의 모든 n-gram을 조합하여 학습하기 때문에 다이나믹 컨텍스트 윈도우를 사용하지않고 문장의 전체 길이로 고정한다.
+		3. 단어 단위의 n-gram 적용.
+
+	sent2vec.py : BERT 또는 word2vec 기반으로 사전학습된 모델을 load 하여 sentence embedding 할 수 있는 모듈
+
+	- Module Install
+	    1) brew install wget
+	    2) wget https://github.com/epfml/sent2vec/archive/master.zip
+	    3) unzip master.zip
+	    4) make
+	    5) sudo python3.7 -m pip install .
+	    *) 만약 가상환경 사용시 로컬 default python 버전의 site-packages 디렉토리에 설치 되므로, cp -r path/sent2vec-0.0.0.dist-info / cp -r path/sent2vec-0.0.0.dist-info 실행
+	    **) 설치후 sent2vec-master 디렉토리 삭제X (추후 학습에 필요)
+	    ***) pip install sent2vec 또는 모듈 upgrade 금지. (다른 모듈 설치됨)
+
+	- Train
+	    In command
+	    => ./fasttext sent2vec -input ../fasttext_test.txt -output test_model -dropoutK 0 -dim 200 -epoch 9 -lr 0.2 -thread 10 -bucket 100000
+	    Parameters
+	        -input              training file path
+            -output             output file path
+
+	        -lr                 learning rate (default=0.2)
+            -lrUpdateRate       change the rate of updates for the learning rate (default=100)
+            -dim                dimension of word and sentence vectors (default=100)
+            -epoch              number of epochs (default=5)
+            -minCount           minimal number of word occurences (default=5)
+            -minCountLabel      minimal number of label occurences (default=0)
+            -neg                number of negatives sampled (default=10)
+            -wordNgrams         max length of word ngram (default=2)
+            -loss               loss function {ns, hs, softmax} (default=ns)
+            -bucket             number of hash buckets for vocabulary (default=2000000)
+            -thread             number of threads (default=2)
+            -t                  sampling threshold (default=0.0001)
+            -dropoutK           number of ngrams dropped when training a sent2vec model (default=2)
+            -verbose            verbosity level (default=2)
+            -maxVocabSize       vocabulary exceeding this size will be truncated (default=None)
+            -numCheckPoints     number of intermediary checkpoints to save when training (default=1)
+
+    - load_model
+        * model_path : model path (default="")
+        * inference_mode : pre-trained model (default=False)
+        * timeout_sec : (default=-1)
+
+    - embed_sentences
+        * sentences : sentence or sentence list (default="")
+        * num_threads : threads num (default=1)
+
+
+    - 참고
+        - https://github.com/epfml/sent2vec
+
+
+
+

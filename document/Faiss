@@ -1,0 +1,49 @@
+Faiss
+
+Faiss : Facebook에서 만든 vector 유사도를 측정하는 라이브러리. 
+	- vector 유사도를 측정하는데 주로 사용되는 numpy 나 scikit-learn에서 제공하는 cosine similarity 등 보다 빠르고 정확한 유사도를 측정할 수 있다.
+	- 내부적으로 C++로 구현되어있으며, GPU를 지원한다.
+    - dence vector들의 클러스터링과 유사도를 구할 때 사용된다.
+    - Similarity search의 방법들을 포함하는 라이브러리이다.
+
+    ** Similarity search란, 특정한 차원을 가진 벡터들의 집합이 있을때 데이터 구조들을 램 위에 올려두고 새로운 벡터가 들어 왔을때 거리가 가장 적은 벡터를 계산하는것.
+        이때 거리는 유클라디안 거리를 사용한다.
+        *** faiss에서 data structure(데이터 구조)는 index라 한하며 객체들을 벡터들의 집합과 더하기 위한 더하기 method를 가진다.
+
+    - 기능 및 특징
+        1) nearest neighbor와 k-th nearest neighbor를 얻을 수 있다.
+        2) 한번에 한 벡터가 아닌 여러 벡터를 검색할수 있다(batch processing). 여러 인덱스 타입들에서 여러 벡터를 차례로 검색하는것 보다 더 빠르다.
+        3) 정확도와 속도 간에 트레이드 오프가 존재한다. 예를들어 10% 부정확한 결과를 얻는다고 할때, 10배 더 빠르거나, 10배 더 적은 메모리를 사용할 수 있다.
+        4) 유클라디안 거리를 최소화 하는 검색이 아닌 maximum inner product가 최대로 되는 방식으로 계산한다.
+        5) query point에서 주어진 radius에 포함되는 모든 element들을 반환한다.
+        6) 인덱스는 디스크에 저장 된다.
+
+    - Install in python
+        * CPU : pip3 install pytorch faiss-cpu
+        * GPU : pip3 install pytorch faiss-gpu
+
+    - faiss.py
+
+    1. faiss_tutorial.py
+
+        * faiss에선 index 라는 개념을 사용, index는 데이터베이스 벡터들의 집합을 캡슐화 하고 효율적으로 검색하기 위해 선택적으로 전처리를 할 수도 있다.
+        * 여러 index 타입들이 있으며, 가장 단순하게 사용할 수 있는 알고리즘은 brute-force L2 distance 검색을 하는 IndexFlatL2 이다.
+            ** IndexFlat2는 별도의 학습을 필요로 하지않는다.
+        * 필요 인자
+            1. xb : 모든 인덱스 벡터들이 포함된 데이터 베이스 (shape: (database size, dimension))
+            2. xq : nearest neighbor을 찾기 위한 쿼리 벡터 (shape: (database size of queries, dimension) 단, 단일 쿼리벡터인 경우 nq = 1)
+
+        * Building an index and adding the vectors to it
+            - 모든 인덱스들은 빌드 될때 어떤 벡터 차원 d에서 연산되는지 정보를 필요로 한다.
+            - 대부분의 인덱스들은 학습 단계를 필요로 한다. 학습이 필요한 이유는 인덱스를 구성하는 벡터들의 분포를 분석할 필요 때문.( 단, IndexFlasL2의 경우 학습을 필요로 하지 않음.)
+            - 인덱스를 빌드하고 학습할때 add와 search 두가지 연산이 인덱스에 대해 수행.
+                1) add : 인덱스에 벡터를 더할때 사용
+                2) is_trained : 학습이 되었는지 상태 확인
+                3) ntotal : 인덱싱된 벡터들의 갯수
+
+        * Searching
+            - 기본적인 Searching 연산은 인덱스에서 k-nearest-neighbor 을 통해 할 수 있다.
+            - 각 쿼리 벡터에 대해서 k개의 근접 이웃 벡터를 검색해준다. 이때 integer matrix 안에 저장되고 matrix의 shape은 (nq, k) 이다.
+            - row i 는 쿼리벡터 i에 대한 neighbors의 id들을 담고 있다. neighbor 들은 거리가 증가하는 순서로 정렬 되어 잇으며, search 연산은 (nq, k)의 모양의 squared distance, floating-point 매트릭스를 반환한다.
+
+    2. faiss_test.py
