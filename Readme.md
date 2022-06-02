@@ -4,21 +4,28 @@
 		- 빈도 수가 높은 단어를 학습에서 제외해 학습 속도를 높여 불용어 제거와 유사한 효과를 갖게 한다.
 		- 학습 배제는 랜덤 확률로 한다.
 	* NegativeSampling
-		- 학습 과정에서 전체 단어 집합이 아닌 일부 단어 집합에만 집중할 수 있도록 하는 방법.
-		- 하나의 중심 단어에 대해서 전체 단어 집합보다 훨씬 작은 단어 집합을 만들어 놓고 마지막 단계를 이진 분류 문제로 변환, 주변 단어들을 긍정, 랜덤으로 샘플링된 단어들을 부정으로 레이블링한다면 이진 분류를 위한 데이터셋으로 하여 단어 집합의 크기만큼의 선택지를 두고 다중 클래스 분류로 풀던 방식보다 연산량에서 효률적인 방법.
-
+		- 하나의 중심 단어에 대해서 전체 단어 집합보다 훨씬 작은 단어 집합을 만들어 놓고 마지막 단계를 이진 분류 문제로 변환, 주변 단어들을 긍정, 랜덤으로 샘플링된 단어들을 부정으로 레이블링한다면 이진 분류를 위한 데이터셋으로 하여 단어 집합의 크기만큼의 선택지를 두고 다중 클래스 분류로 풀던 방식보다 연산량에서 효율적인 방법.
+		- 다중분류에서 이진분류로 변환하는 과정에서 Negative Sampling이라는 기법이 활용된다.
 		- 기존의 중심 단어로부터 주변 단어를 예측하는 모델인 Skip-gram과 달리, 중심 단어와 주변 단어가 모두 입력되고, 두 단어가 실제로 윈도우 크기내에 존재하는 이웃 관계인지 그 확률을 예측한다.
 		- 긍정적 예를 타깃으로 한 경우의 손실을 구하면서, 동시에 부정적 예를 샘플링하여 손실을 구한다. 부정적 예를 샘플링하는 좋은 방법으로 코퍼스에서 자주 등장하는 단어를 많이 추출하고 드물게 등장하는 단어를 적게 추출하는 방법이다.
+
+	*** 다중분류 : 'you' 와 'goodbye' 라는 2개의 맥락 단어가 입력으로 주어졌을 때, 가운데에 나올 단어가 무엇인가?		
+	*** 이진분류 : 'you' 와 'goodbye' 라는 2개의 맥락 단어가 입력으로 주어졌을 때, 가운데에 나올 단어는 'say'인가? 아닌가?
+		
+
+		
 
 ### Sent2Vec
 	- 범용적인 문장 임베딩을 목표로 하는 비지도 학습 모델로, Word2Vec의 CBOW 모델을 문장 단위로 확장한 모델이다.
 	- 문장에 존재하는 모든 요소의 벡터 합에 평균을 취한 값을 문장 임베딩 값을 갖는다.
 	- 기본적인 학습방식은 문장의 네거티브 샘플링을 통해 컨텍스트(주변) 전체의 loss를 최소화 하는 형태로 학습한다.
 
-	- CBOW와의 차이점:
+	- CBOW(Cotinuous Bag-of-Words)
+		- CBOW: 컨텍스트가 주어졌을때, 문맥 단어로부터 기준단어를 예측하는 모델로써, 기준 단어에 대해 앞 뒤로 N/2개씩, 총 N개의 문맥 단어를 입력으로 사용하여, 기준 단어를 맞추기 위한 네트워크를 만든다.
+	- CBOW vs Sent2Vec
 		1. 서브샘플링 비활성화 : 서브샘플링은 모든 n-gram 생성을 가로막고 문장에서 중요한 부분을 앗아갈수 있고, 서브샘플링된 단어만 남게되면 단어간 거리를 단축시켜 컨텍스트 윈도우의 크기를 암묵적으로 증가시키는 부작용을 낳는다.
 		2. 다이나믹 컨텍스트 윈도우 비활성화 : 문장 전체의 의미를 살리기 위해 문장의 모든 n-gram을 조합하여 학습하기 때문에 다이나믹 컨텍스트 윈도우를 사용하지않고 문장의 전체 길이로 고정한다.
-		3. 단어 단위의 n-gram 적용.
+		3. CBOW가 토큰 단위로 업데이트 하는 것에 비해 Sent2Vec은 문장 길이에 비례한 만큼 업데이트 한다.
 
 
 	- Module Install in Mac OS
@@ -43,10 +50,10 @@
            * -dim: dimension of word and sentence vectors (default=100)
            * -epoch: number of epochs (default=5)
            * -minCount: minimal number of word occurences (default=5)
-           * -minCountLabel: minimal number of label occurences (default=0)
+           * -minCountLabel: minimal number of label occurences, sent2vec의 경우 비지도 학습으로 라벨이 필요치 않음으로 0 (default=0)
            * -neg: number of negatives sampled (default=10)
-           * -wordNgrams: max length of word ngram (default=2)
-           * -loss: loss function {ns, hs, softmax} (default=ns)
+           * -wordNgrams: max length of word ngram (default=2, 한국어인 경우 0)
+           * -loss: loss function {ns, hs, softmax} (default=ns) (ns : , hs : hierarchical softmax)
            * -bucket: number of hash buckets for vocabulary (default=2000000)
            * -thread: number of threads (default=2)
            * -t: sampling threshold (default=0.0001)
@@ -55,6 +62,10 @@
            * -maxVocabSize: vocabulary exceeding this size will be truncated (default=None)
            * -numCheckPoints: number of intermediary checkpoints to save when training (default=1)
 
+* loss funtion 
+	1. ns(negative sampling) : softmax로 부터 발생하는 어마어마한 summation을 K개의 negative smapling 으로 해결하여 연산량을 줄여 속도를 향상
+	2. hs (hierarchical softmax) : 출력층 값을 softmax함수로 얻는것 대신 binary tree를 이용하여 값을 얻는 방법으로 root에서 부터 leaf까지 가는길에 있는 확률을 모두 곱하여 출력층의 값을 계산한다.(skipgram을 사용할때 lossfunction 으로 사용)
+  
 
 
 
@@ -115,7 +126,40 @@ Faiss : Facebook에서 만든 vector 유사도를 측정하는 라이브러리.
 	- 학습을 필요로 하지 않는 IndexFlat2 알고리즘을 테스트.
 	- IndexFlatL2 인데스만 사용할 경우 계산 비용과 시간이 많이 소모되고 잘 확장되지 않는다는 단점이 있다.
 	- 시간과 비용소모를 줄이기 위해 검색범위를 줄여 정확한 답변보단 대략적인 답변을 생성한다.
+	
+~~~
 
+import sent2vec
+import faiss
+
+# sent2vec model load
+model = sent2vec.Sent2vecModel()
+model.load_model('{model path}')
+
+# data embedding
+embed_data = model.embed_sentences(data)
+d = embed_data.shape[1] # dimension
+
+# IndexFlatL2 알고리즘 적용
+index = faiss.IndexFlatL2(d)
+
+faiss_index.add(embed_data)
+
+# 군집수 설정, search sentence embedding
+k = 3
+xq = model.embed_sentence('outpatient treatment')
+D, I = faiss_index.search(xq, k)
+
+# result 
+for i,z in zip(I[0], D[0]):
+    print(f"Distance D : {z}")
+    print(f"Index I {i} : {df['data'][i]}")
+
+
+~~~
+###### Result IndexFlatL2
+
+<p align="center"><img src="http://192.168.0.200:9000/files/36" width="500px" height="80px" title="IndexFlatL2"/></p>
 
 #### faiss.IndexIVFFLat
 	- IndexFlatL2를 사용하여 인덱스를 양자화 단계로 사용하고 이 인덱스를 partitioning IndexIVFFLat 인덱스에 제공. 
@@ -128,7 +172,45 @@ Faiss : Facebook에서 만든 vector 유사도를 측정하는 라이브러리.
 	- Vector Reconstruction
 	- IVF 단계의 추가로 인해 원래의 vector와 index 위치 간에 직접적인 매핑이 없으므로 .make_direct_map()을 통해 매핑 이후 numerical vector을 확인할 수 있다.
 
-	
+~~~
+
+# Use IndexIVFFLat
+nlist = 50 # index에 포함할 파티션 수를 지정
+quant = faiss.IndexFlatL2(d)
+index = faiss.IndexIVFFlat(quant, d, nlist)
+
+# IndexIVFFLat train
+index.train(embed_data)
+
+index.add(embed_data)
+
+k = 3
+xq = model.embed_sentence('outpatient treatment')
+
+D, I = index.search(xq, k)
+
+for i,z in zip(I[0], D[0]):
+    print(f"Distance D : {z}")
+    print(f"Index I {i} : {df['data'][i]}")
+
+
+# .nprobe를 통해 검색범위를 늘려 정확도 향상.
+index.nprobe = 10
+D, I = index.search(xq, k)
+print(I)
+for i,z in zip(I[0], D[0]):
+    print(f"Distance D : {z}")
+    print(f"Index I {i} : {df['data'][i]}")
+
+~~~
+
+###### Result IndexIVFFLat
+<p align="center"><img src="http://192.168.0.200:9000/files/37" width="500px" height="80px" title="IndexIVFFlat"/></p>
+
+###### Result IndexIVFFLat_nprobe
+<p align="center"><img src="http://192.168.0.200:9000/files/38" width="500px" height="80px" title="IndexIVFFlat"/></p>
+
+
 #### faiss.IndexIVFPQ
 	- Product Quantization(PQ)
 	- IVF를 사용하면 검색범위를 줄여 근사치를 구하는 반면 PQ는 거리/유사성 계산을 근사화한다.
@@ -141,13 +223,42 @@ Faiss : Facebook에서 만든 vector 유사도를 측정하는 라이브러리.
 	- IndexIVFFLat와 마찬가지로 학습이 필요한 알고리즘.
 
 * IVF와 PQ는 정확한 결과를 얻지는 못하더라도 정답에 가까워지는 근사값을 보다 나은 속도로 얻을 수 있다.
-	 
-			
+
+~~~
+
+# Use IndexIVFPQ
+nlist = 50 # index에 포함할 파티션 수를 지정
+m = 8 # number of centroid IDs in final compressed vectors
+bits = 8 # number of bits in each centroid
+
+quant = faiss.IndexFlatL2(d)
+index = faiss.IndexIVFPQ(quant, d, nlist, m, bits)
+
+index.train(embed_data)
+
+index.add(embed_data)
+
+k = 3
+xq = model.embed_sentence('outpatient treatment')
+
+# .nprobe를 통해 검색범위를 늘려 정확도 향상.
+index.nprobe = 10
+D, I = index.search(xq, k)
+
+for i,z in zip(I[0], D[0]):
+    print(f"Distance D : {z}")
+    print(f"Index I {i} : {df['data'][i]}")
+
+~~~
+###### Result IndexIVFPQ_nprobe
+<p align="center"><img src="http://192.168.0.200:9000/files/39" width="500px" height="80px" title="IndexIVFFlat"/></p>
 
 
-
-	* 참고:
+	* References:
 		* https://github.com/epfml/sent2vec
+		* https://arxiv.org/pdf/1703.02507.pdf
+		* https://docs.likejazz.com/sent2vec/
+		*  https://yjjo.tistory.com/14 (loss function)
 		* https://www.pinecone.io/learn/faiss-tutorial/
 		* https://github.com/facebookresearch/faiss
 
