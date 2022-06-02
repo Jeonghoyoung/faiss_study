@@ -157,9 +157,6 @@ for i,z in zip(I[0], D[0]):
 
 
 ~~~
-###### Result IndexFlatL2
-
-<p align="center"><img src="http://192.168.0.200:9000/files/36" width="500px" height="80px" title="IndexFlatL2"/></p>
 
 #### faiss.IndexIVFFLat
 	- IndexFlatL2를 사용하여 인덱스를 양자화 단계로 사용하고 이 인덱스를 partitioning IndexIVFFLat 인덱스에 제공. 
@@ -204,13 +201,6 @@ for i,z in zip(I[0], D[0]):
 
 ~~~
 
-###### Result IndexIVFFLat
-<p align="center"><img src="http://192.168.0.200:9000/files/37" width="500px" height="80px" title="IndexIVFFlat"/></p>
-
-###### Result IndexIVFFLat_nprobe
-<p align="center"><img src="http://192.168.0.200:9000/files/38" width="500px" height="80px" title="IndexIVFFlat"/></p>
-
-
 #### faiss.IndexIVFPQ
 	- Product Quantization(PQ)
 	- IVF를 사용하면 검색범위를 줄여 근사치를 구하는 반면 PQ는 거리/유사성 계산을 근사화한다.
@@ -250,10 +240,6 @@ for i,z in zip(I[0], D[0]):
     print(f"Index I {i} : {df['data'][i]}")
 
 ~~~
-###### Result IndexIVFPQ_nprobe
-<p align="center"><img src="http://192.168.0.200:9000/files/39" width="500px" height="80px" title="IndexIVFFlat"/></p>
-
-
 	* References:
 		* https://github.com/epfml/sent2vec
 		* https://arxiv.org/pdf/1703.02507.pdf
